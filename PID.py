@@ -43,7 +43,7 @@ na = len(A) - 1             # number of poles
 # Simulation parameters
 tf = 20
 
-Reference = 30
+Reference = 35
 r = (Reference - 54) * (-1 / 20)
 
 k = 0.00371099
@@ -61,7 +61,7 @@ t = tau
 #ti = min(t+theta/2, 8*theta) # min with 8*theta comes from a later suggestion from SIMC
 
 # 2001, Skogestad, Probably the best simple PID tuning rules in the world - SIMC PI - Skogestad IMC or Simple IMC
-tauc = theta # 20*theta for 20x slower response
+tauc = 40*theta # 20*theta for 20x slower response
 kp = (1/k)*(tau/(tauc+theta))
 ti = min(tau, 4*(tauc+theta))
 
@@ -79,7 +79,6 @@ ki = kp/ti # IDEAL FORM
 lastErro = 0 
 lastOutput = 0
 
-# Simulate
 while True:
     y = aarc.dac_receive_data(port, 0, True)
 
@@ -96,9 +95,14 @@ while True:
 
     output = lastOutput + du
 
+    if(output < 0):
+        output = 0
+    elif(output> 5):
+        output = 5
+
     aarc.dac_send_data(port, 0, output)
 
     lastErro = error
     lastOutput = output
 
-    print(output)
+    print(output,error )
