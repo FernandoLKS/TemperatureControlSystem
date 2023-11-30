@@ -7,6 +7,7 @@ LiquidCrystal lcd(12, 13, 7, 6, 5, 4);
 const uint8_t CMD_WRITE_DAC = 0;
 const uint8_t CMD_READ_ADC = 1;
 const uint8_t CMD_READ_ALL_ADC = 2;
+const uint8_t CMD_WRITE_REFERENCE = 3;
 
 const uint8_t DAC_COUNT = 6;
 const uint8_t ADC_COUNT = 6;
@@ -25,6 +26,8 @@ volatile uint16_t inputValue = 0;
 
 uint16_t i = 0;
 
+float TempReferencia = 35;
+int DutyCicle = 100; 
 
 void setup()
 {
@@ -63,8 +66,6 @@ inline void waitSerialAvailable()
 void loop()
 { 
   float valorSensor = analogRead(adcPins[0]);
-  float TempReferencia = 25.0;
-  int DutyCicle = 100; 
  
   float Tensao = (valorSensor * 5) / 1023; 
   float TempAmbiente = Tensao / 0.010;
@@ -82,6 +83,8 @@ void loop()
   lcd.print(DutyCicle);
   lcd.print("%"); 
 
+  delay(100);
+
   // Wait for command
   if(Serial.available())
   {
@@ -97,6 +100,7 @@ void loop()
         inPin = Serial.read();
         waitSerialAvailable();
         inValue = Serial.read();
+        DutyCicle = inValue*100/255;
 
         // Output the desired pin with the PWM cycle
         if(inPin >= 0 && inPin <= DAC_COUNT-1)
@@ -127,6 +131,11 @@ void loop()
         Serial.write((uint8_t*)&ADC_COUNT, sizeof(ADC_COUNT));
         Serial.write((uint8_t*)&inValuesBuffer, sizeof(inValuesBuffer));
       }break;
+      case CMD_WRITE_REFERENCE:
+      {
+        waitSerialAvailable();
+        TempReferencia = Serial.read();
+      }
     }
   }
 }
